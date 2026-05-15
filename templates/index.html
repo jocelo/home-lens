@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Lens Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+    <main class="dashboard">
+        <section class="top-banner">
+            <div class="youtube-group">
+                <img id="channelIcon0" class="channel-icon" alt="YouTube channel icon">
+                <div>
+                    <p class="banner-label" id="channelTitle0">Loading channel...</p>
+                    <p class="banner-value" id="subscriberCount0">Loading...</p>
+                    <p class="banner-label" id="channelMeta0">Subscribers</p>
+                </div>
+            </div>
+
+            <div class="youtube-group">
+                <img id="channelIcon1" class="channel-icon" alt="YouTube channel icon">
+                <div>
+                    <p class="banner-label" id="channelTitle1">Loading channel...</p>
+                    <p class="banner-value" id="subscriberCount1">Loading...</p>
+                    <p class="banner-label" id="channelMeta1">Subscribers</p>
+                </div>
+            </div>
+
+            <div class="youtube-group">
+                <img id="channelIcon2" class="channel-icon" alt="YouTube channel icon">
+                <div>
+                    <p class="banner-label" id="channelTitle2">Loading channel...</p>
+                    <p class="banner-value" id="subscriberCount2">Loading...</p>
+                    <p class="banner-label" id="channelMeta2">Subscribers</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="calendar-panel">
+            <div class="calendar-title-row">
+                <h2 class="month-label" id="monthLabel">Current Month</h2>
+                <p class="week-context" id="weekContext">Week 1 of view</p>
+            </div>
+            <div class="calendar-header" id="calendarHeader"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <section class="editor-panel" id="editorPanel" aria-live="polite">
+                <p class="editor-title" id="editorTitle">Select a day</p>
+                <p class="editor-note">These fields are placeholders for your future daily details.</p>
+                <input class="editor-input" id="editorHeadline" type="text" placeholder="Title for selected day">
+                <textarea class="editor-textarea" id="editorDetails" placeholder="Details for selected day"></textarea>
+            </section>
+        </section>
+
+        <section class="bottom-banner" aria-label="Bottom image banner placeholder"></section>
+    </main>
+
+    <script>
+        const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const CALENDAR_ROWS = 5;
+        const MATE_CON_PAULA_CHANNEL = "UCMhSbWtm7M6IfR_pi3X56XQ";
+        const BARBIE_WOONZA_CHANNEL = "UC1I4VCnjt4rhKUpQFhjG85w";
+        const MAIAPAULA_CHANNEL = "UCzIuIkFMCQ1uVWYQXDW_qSw";
+        const dayNotes = {};
+
+        const channels = [
+            MATE_CON_PAULA_CHANNEL,
+            BARBIE_WOONZA_CHANNEL,
+            MAIAPAULA_CHANNEL,
+        ];
+
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function setCalendarMeta(startDate, endDate) {
+            const monthLabel = document.getElementById("monthLabel");
+            const weekContext = document.getElementById("weekContext");
+
+            const monthFormatter = new Intl.DateTimeFormat("en-US", {
+                month: "long",
+                year: "numeric"
+            });
+
+            const firstLabel = monthFormatter.format(startDate);
+            const lastLabel = monthFormatter.format(endDate);
+            monthLabel.textContent = firstLabel === lastLabel ? firstLabel : `${firstLabel} - ${lastLabel}`;
+            weekContext.textContent = `View starts ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+        }
+
+        function updateEditor(dateKey) {
+            const titleEl = document.getElementById("editorTitle");
+            const headlineInput = document.getElementById("editorHeadline");
+            const detailsInput = document.getElementById("editorDetails");
+            const saved = dayNotes[dateKey] || { headline: "", details: "" };
+
+            titleEl.textContent = `Details for ${dateKey}`;
+            headlineInput.value = saved.headline;
+            detailsInput.value = saved.details;
+
+            headlineInput.oninput = () => {
+                dayNotes[dateKey] = {
+                    headline: headlineInput.value,
+                    details: detailsInput.value
+                };
+            };
+
+            detailsInput.oninput = () => {
+                dayNotes[dateKey] = {
+                    headline: headlineInput.value,
+                    details: detailsInput.value
+                };
+            };
+        }
+
+        function selectDayCell(cell, dateKey) {
+            document.querySelectorAll(".day-cell.selected").forEach((selected) => {
+                selected.classList.remove("selected");
+            });
+            cell.classList.add("selected");
+            updateEditor(dateKey);
+        }
+
+        function createCalendarHeader() {
+            const header = document.getElementById("calendarHeader");
+            WEEKDAYS.forEach((day) => {
+                const cell = document.createElement("div");
+                cell.className = "weekday";
+                cell.textContent = day;
+                header.appendChild(cell);
+            });
+        }
+
+        function createCalendarGrid() {
+            const grid = document.getElementById("calendarGrid");
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endDate = new Date(startOfWeek);
+            endDate.setDate(startOfWeek.getDate() + (CALENDAR_ROWS * 7) - 1);
+
+            setCalendarMeta(startOfWeek, endDate);
+
+            const totalCells = CALENDAR_ROWS * 7;
+            let firstSelectableCell = null;
+            let firstSelectableDateKey = null;
+
+            for (let index = 0; index < totalCells; index += 1) {
+                const currentDate = new Date(startOfWeek);
+                currentDate.setDate(startOfWeek.getDate() + index);
+                const dayOfWeek = index % 7;
+                const dateKey = formatDateKey(currentDate);
+
+                const cell = document.createElement("div");
+                cell.className = "day-cell";
+                cell.dataset.date = dateKey;
+
+                if (dayOfWeek === 0) {
+                    cell.classList.add("week-start");
+                    const weekTag = document.createElement("span");
+                    weekTag.className = "day-week-tag";
+                    weekTag.textContent = `W${Math.floor(index / 7) + 1}`;
+                    cell.appendChild(weekTag);
+                }
+
+                if (dayOfWeek === 6) {
+                    cell.classList.add("week-end");
+                }
+
+                if (
+                    currentDate.getFullYear() === today.getFullYear() &&
+                    currentDate.getMonth() === today.getMonth() &&
+                    currentDate.getDate() === today.getDate()
+                ) {
+                    cell.classList.add("today");
+                }
+
+                const dayNumber = document.createElement("span");
+                dayNumber.className = "day-number";
+                dayNumber.textContent = String(currentDate.getDate());
+                cell.appendChild(dayNumber);
+
+                const content = document.createElement("div");
+                content.className = "day-content-placeholder";
+                cell.appendChild(content);
+
+                cell.addEventListener("click", () => {
+                    selectDayCell(cell, dateKey);
+                });
+
+                grid.appendChild(cell);
+
+                if (!firstSelectableCell) {
+                    firstSelectableCell = cell;
+                    firstSelectableDateKey = dateKey;
+                }
+
+                if (
+                    currentDate.getFullYear() === today.getFullYear() &&
+                    currentDate.getMonth() === today.getMonth() &&
+                    currentDate.getDate() === today.getDate()
+                ) {
+                    firstSelectableCell = cell;
+                    firstSelectableDateKey = dateKey;
+                }
+            }
+
+            if (firstSelectableCell && firstSelectableDateKey) {
+                selectDayCell(firstSelectableCell, firstSelectableDateKey);
+            }
+        }
+
+        async function loadSubscribers(channel, index) {
+            const countElement = document.getElementById(`subscriberCount${index}`);
+            const channelTitleElement = document.getElementById(`channelTitle${index}`);
+            const channelMetaElement = document.getElementById(`channelMeta${index}`);
+            const channelIconElement = document.getElementById(`channelIcon${index}`);
+
+            try {
+                const response = await fetch("/api/youtube-subscribers", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ channel })
+                });
+
+                const payload = await response.json();
+                if (payload.error) {
+                    countElement.textContent = "Unavailable";
+                    channelTitleElement.textContent = "Channel unavailable";
+                    channelMetaElement.textContent = payload.error;
+                    channelIconElement.removeAttribute("src");
+                    channelIconElement.classList.add("channel-icon-fallback");
+                    return;
+                }
+
+                channelTitleElement.textContent = payload.channel_name;
+                channelMetaElement.textContent = "Subscribers";
+                countElement.textContent = Number(payload.subscriber_count).toLocaleString();
+
+                if (payload.channel_icon_url) {
+                    channelIconElement.src = payload.channel_icon_url;
+                    channelIconElement.classList.remove("channel-icon-fallback");
+                } else {
+                    channelIconElement.removeAttribute("src");
+                    channelIconElement.classList.add("channel-icon-fallback");
+                }
+            } catch (error) {
+                countElement.textContent = "Unavailable";
+                channelTitleElement.textContent = "Channel unavailable";
+                channelMetaElement.textContent = "Channel data could not be loaded";
+                channelIconElement.removeAttribute("src");
+                channelIconElement.classList.add("channel-icon-fallback");
+            }
+        }
+
+        createCalendarHeader();
+        createCalendarGrid();
+        channels.slice(0, 3).forEach((channel, index) => {
+            loadSubscribers(channel, index);
+        });
+    </script>
+</body>
+</html>
