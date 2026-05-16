@@ -40,7 +40,18 @@
         <section class="calendar-panel">
             <div class="calendar-title-row">
                 <h2 class="month-label" id="monthLabel">Current Month</h2>
-                <p class="week-context" id="weekContext">Week 1 of view</p>
+                <div class="prev-next-month">
+                    <span id="prevMonthBtn" style="font-size: 42px;"> ⏮️ </span>
+                    <span id="prevWeekBtn" style="font-size: 42px;"> ⏪ </span>
+                    <span id="todayBtn" style="font-size: 42px;"> 🗓️ </span>
+                    <span id="nextWeekBtn" style="font-size: 42px;"> ⏩ </span>
+                    <span id="nextMonthBtn" style="font-size: 42px;"> ⏭️ </span>
+                </div>
+                <div class="week-context" id="weekContext">
+                    <button class="icon-button" id="addEventBtn" title="Add Event">➕</button>
+                    <button class="icon-button" id="maiaPoopBtn" title="Maia Poop">💩</button>
+                    <button class="icon-button" id="workFromHomeBtn" title="Work From Home">🏠</button>
+                </div>
             </div>
             <div class="calendar-header" id="calendarHeader"></div>
             <div class="calendar-grid" id="calendarGrid"></div>
@@ -62,6 +73,10 @@
         const BARBIE_WOONZA_CHANNEL = "UC1I4VCnjt4rhKUpQFhjG85w";
         const MAIAPAULA_CHANNEL = "UCzIuIkFMCQ1uVWYQXDW_qSw";
         const dayNotes = {};
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let visibleStartDate = new Date(today);
+        visibleStartDate.setDate(today.getDate() - today.getDay());
 
         const channels = [
             MATE_CON_PAULA_CHANNEL,
@@ -78,18 +93,29 @@
 
         function setCalendarMeta(startDate, endDate) {
             const monthLabel = document.getElementById("monthLabel");
-            const weekContext = document.getElementById("weekContext");
 
-            const monthFormatter = new Intl.DateTimeFormat("en-US", {
+            const dateFormatter = new Intl.DateTimeFormat("en-US", {
+                day: "numeric",
                 month: "long",
                 year: "numeric"
             });
 
-            const firstLabel = monthFormatter.format(startDate);
-            const lastLabel = monthFormatter.format(endDate);
-            monthLabel.textContent = firstLabel === lastLabel ? firstLabel : `${firstLabel} - ${lastLabel}`;
-            weekContext.textContent = `View starts ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+            monthLabel.textContent = `${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}`;
         }
+
+            function addEvent() {
+                window.location.href = '/add';
+            }
+
+            function maiaPoop() {
+                console.log('Maia Poop action triggered');
+                // TODO: Implement Maia Poop logic
+            }
+
+            function workFromHome() {
+                console.log('Work From Home action triggered');
+                // TODO: Implement Work From Home logic
+            }
 
         function updateEditor(dateKey) {
             const titleEl = document.getElementById("editorTitle");
@@ -126,6 +152,7 @@
 
         function createCalendarHeader() {
             const header = document.getElementById("calendarHeader");
+            header.innerHTML = "";
             WEEKDAYS.forEach((day) => {
                 const cell = document.createElement("div");
                 cell.className = "weekday";
@@ -136,9 +163,8 @@
 
         function createCalendarGrid() {
             const grid = document.getElementById("calendarGrid");
-            const today = new Date();
-            const startOfWeek = new Date(today);
-            startOfWeek.setDate(today.getDate() - today.getDay());
+            grid.innerHTML = "";
+            const startOfWeek = new Date(visibleStartDate);
             startOfWeek.setHours(0, 0, 0, 0);
             const endDate = new Date(startOfWeek);
             endDate.setDate(startOfWeek.getDate() + (CALENDAR_ROWS * 7) - 1);
@@ -188,6 +214,16 @@
                 content.className = "day-content-placeholder";
                 cell.appendChild(content);
 
+                if (index === 0 || currentDate.getDate() === 1) {
+                    const monthOverlay = document.createElement("span");
+                    monthOverlay.className = "month-watermark";
+                    monthOverlay.textContent = currentDate
+                        .toLocaleString("en-US", { month: "short" })
+                        .slice(0, 3)
+                        .toUpperCase();
+                    cell.appendChild(monthOverlay);
+                }
+
                 cell.addEventListener("click", () => {
                     selectDayCell(cell, dateKey);
                 });
@@ -212,6 +248,19 @@
             if (firstSelectableCell && firstSelectableDateKey) {
                 selectDayCell(firstSelectableCell, firstSelectableDateKey);
             }
+        }
+
+        function shiftCalendarByWeek(weekDelta) {
+            visibleStartDate = new Date(visibleStartDate);
+            visibleStartDate.setDate(visibleStartDate.getDate() + (weekDelta * 7));
+            createCalendarGrid();
+        }
+
+        function goToTodayView() {
+            visibleStartDate = new Date(today);
+            visibleStartDate.setDate(today.getDate() - today.getDay());
+            visibleStartDate.setHours(0, 0, 0, 0);
+            createCalendarGrid();
         }
 
         async function loadSubscribers(channel, index) {
@@ -264,6 +313,16 @@
         channels.slice(0, 3).forEach((channel, index) => {
             loadSubscribers(channel, index);
         });
+
+        // Attach event listeners to icon buttons
+        document.getElementById('addEventBtn').addEventListener('click', addEvent);
+        document.getElementById('maiaPoopBtn').addEventListener('click', maiaPoop);
+        document.getElementById('workFromHomeBtn').addEventListener('click', workFromHome);
+
+        // Week navigation controls
+        document.getElementById('prevWeekBtn').addEventListener('click', () => shiftCalendarByWeek(-1));
+        document.getElementById('nextWeekBtn').addEventListener('click', () => shiftCalendarByWeek(1));
+        document.getElementById('todayBtn').addEventListener('click', goToTodayView);
     </script>
 </body>
 </html>

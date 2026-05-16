@@ -105,6 +105,16 @@ def home():
     return render_template('index.html')
 
 
+@app.route('/add')
+def add_entry():
+    """
+    Page to add a new calendar entry.
+    Accepts optional 'date' parameter in format YYYY-MM-DD
+    """
+    date = request.args.get('date', None)
+    return render_template('add.html', date=date)
+
+
 @app.route('/api/youtube-subscribers', methods=['POST'])
 def youtube_subscribers():
     """

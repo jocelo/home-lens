@@ -79,13 +79,13 @@ body {
 }
 
 .banner-label {
-    font-size: 14px;
+    font-size: 19px;
     color: var(--text-muted);
     margin: 0;
 }
 
 .banner-value {
-    font-size: 28px;
+    font-size: 33px;
     margin: 2px 0 0;
     line-height: 1;
     font-weight: 700;
@@ -113,9 +113,13 @@ body {
     padding: 2px 2px 6px;
 }
 
+.prev-next-month span {
+    cursor: pointer;
+}
+
 .month-label {
     margin: 0;
-    font-size: 18px;
+    font-size: 23px;
     font-weight: 700;
     color: #2a4624;
     letter-spacing: 0.02em;
@@ -123,9 +127,38 @@ body {
 
 .week-context {
     margin: 0;
-    font-size: 13px;
+    font-size: 18px;
     color: var(--text-muted);
     font-weight: 600;
+}
+
+.week-context {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    background: rgba(26, 168, 75, 0.1);
+    transform: scale(1.15);
+}
+
+.icon-button:active {
+    transform: scale(0.95);
 }
 
 .calendar-header,
@@ -146,7 +179,7 @@ body {
     background: #f0f6ec;
     text-align: center;
     padding: 7px 4px;
-    font-size: 12px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: #385233;
@@ -160,6 +193,20 @@ body {
     padding: 6px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.month-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.3;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #2a4624;
+    pointer-events: none;
+    text-transform: uppercase;
 }
 
 .day-cell:hover {
@@ -185,7 +232,7 @@ body {
     position: absolute;
     top: 4px;
     right: 6px;
-    font-size: 11px;
+    font-size: 16px;
     color: #577252;
     font-weight: 700;
 }
@@ -206,7 +253,7 @@ body {
     position: absolute;
     left: 6px;
     top: 4px;
-    font-size: 9px;
+    font-size: 14px;
     font-weight: 700;
     color: #4f6a49;
     text-transform: uppercase;
@@ -226,14 +273,14 @@ body {
 
 .editor-title {
     margin: 0;
-    font-size: 13px;
+    font-size: 18px;
     color: #2a4624;
     font-weight: 700;
 }
 
 .editor-note {
     margin: 0;
-    font-size: 11px;
+    font-size: 16px;
     color: var(--text-muted);
 }
 
@@ -282,15 +329,15 @@ body {
     }
 
     .banner-value {
-        font-size: 22px;
+        font-size: 27px;
     }
 
     .month-label {
-        font-size: 16px;
+        font-size: 21px;
     }
 
     .week-context {
-        font-size: 12px;
+        font-size: 17px;
     }
 
     .editor-note {

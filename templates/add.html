@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Calendar Entry - Home Lens</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+        }
+
+        .add-entry-container {
+            background: var(--panel);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(36, 61, 33, 0.15);
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            margin: 10px;
+        }
+
+        .add-entry-container h1 {
+            margin: 0 0 24px;
+            font-size: 28px;
+            color: #2a4624;
+            letter-spacing: 0.02em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2a4624;
+            letter-spacing: 0.02em;
+        }
+
+        .form-group input[type="date"] {
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #b9cfb0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--text-main);
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .form-group input[type="date"]:focus {
+            outline: none;
+            border-color: #1f8a3f;
+            box-shadow: 0 0 0 2px rgba(31, 138, 63, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-submit {
+            background: #1aa84b;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #128038;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26, 168, 75, 0.3);
+        }
+
+        .btn-cancel {
+            background: #e8e8e8;
+            color: var(--text-main);
+        }
+
+        .btn-cancel:hover {
+            background: #d5d5d5;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 760px) {
+            .add-entry-container {
+                padding: 24px;
+            }
+
+            .add-entry-container h1 {
+                font-size: 24px;
+            }
+
+            .form-group label {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="add-entry-container">
+        <h1>Add Entry</h1>
+        <form id="addEntryForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label for="entryDate">Date</label>
+                <input 
+                    type="date" 
+                    id="entryDate" 
+                    name="date" 
+                    required
+                    {% if date %}value="{{ date }}"{% endif %}
+                >
+            </div>
+            <div class="button-group">
+                <button type="button" class="btn-cancel" onclick="goBack()">Cancel</button>
+                <button type="submit" class="btn-submit">Add Entry</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Set default date to today if not provided
+        function initializeDatePicker() {
+            const dateInput = document.getElementById('entryDate');
+            const urlDate = dateInput.value;
+            
+            if (!urlDate) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const dateInput = document.getElementById('entryDate');
+            const selectedDate = dateInput.value;
+            
+            // Redirect to home with the selected date
+            window.location.href = `/?date=${selectedDate}`;
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeDatePicker);
+    </script>
+</body>
+</html>
