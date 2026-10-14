@@ -44,24 +44,53 @@ body {
 }
 
 .top-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 16px 20px;
+    overflow: hidden;
+    min-width: 0;
+    padding: 16px 0;
     border-radius: 12px;
     background: var(--panel);
     border: 1px solid #d8e5d3;
     box-shadow: 0 10px 20px rgba(36, 61, 33, 0.1);
 }
 
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 25s linear infinite;
+}
+
+.top-banner:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+.marquee-set {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 100vw;
+    justify-content: space-around;
+    gap: 60px;
+    padding-right: 60px;
+    box-sizing: border-box;
+}
+
+@keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
 .youtube-group {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1 1 280px;
-    min-width: 0;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.youtube-group > div {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
 }
 
 .channel-icon {
@@ -319,13 +348,7 @@ body {
     }
 
     .top-banner {
-        flex-direction: row;
-        align-items: center;
-        padding: 12px;
-    }
-
-    .youtube-group {
-        flex: 1 1 100%;
+        padding: 12px 0;
     }
 
     .banner-value {

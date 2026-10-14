@@ -9,31 +9,35 @@
 <body>
     <main class="dashboard">
         <section class="top-banner">
+            <div class="marquee-track" id="marqueeTrack">
+            <div class="marquee-set" id="marqueeSet">
             <div class="youtube-group">
                 <img id="channelIcon0" class="channel-icon" alt="YouTube channel icon">
                 <div>
-                    <p class="banner-label" id="channelTitle0">Loading channel...</p>
-                    <p class="banner-value" id="subscriberCount0">Loading...</p>
-                    <p class="banner-label" id="channelMeta0">Subscribers</p>
+                    <span class="banner-label" id="channelTitle0">Loading channel...</span>
+                    <span class="banner-value" id="subscriberCount0">Loading...</span>
+                    <span class="banner-label" id="channelMeta0">Subscribers</span>
                 </div>
             </div>
 
             <div class="youtube-group">
                 <img id="channelIcon1" class="channel-icon" alt="YouTube channel icon">
                 <div>
-                    <p class="banner-label" id="channelTitle1">Loading channel...</p>
-                    <p class="banner-value" id="subscriberCount1">Loading...</p>
-                    <p class="banner-label" id="channelMeta1">Subscribers</p>
+                    <span class="banner-label" id="channelTitle1">Loading channel...</span>
+                    <span class="banner-value" id="subscriberCount1">Loading...</span>
+                    <span class="banner-label" id="channelMeta1">Subscribers</span>
                 </div>
             </div>
 
             <div class="youtube-group">
                 <img id="channelIcon2" class="channel-icon" alt="YouTube channel icon">
                 <div>
-                    <p class="banner-label" id="channelTitle2">Loading channel...</p>
-                    <p class="banner-value" id="subscriberCount2">Loading...</p>
-                    <p class="banner-label" id="channelMeta2">Subscribers</p>
+                    <span class="banner-label" id="channelTitle2">Loading channel...</span>
+                    <span class="banner-value" id="subscriberCount2">Loading...</span>
+                    <span class="banner-label" id="channelMeta2">Subscribers</span>
                 </div>
+            </div>
+            </div>
             </div>
         </section>
 
@@ -103,19 +107,19 @@
             monthLabel.textContent = `${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}`;
         }
 
-            function addEvent() {
-                window.location.href = '/add';
-            }
+        function addEvent() {
+            window.location.href = '/add';
+        }
 
-            function maiaPoop() {
-                console.log('Maia Poop action triggered');
-                // TODO: Implement Maia Poop logic
-            }
+        function maiaPoop() {
+            console.log('Maia Poop action triggered');
+            // TODO: Implement Maia Poop logic
+        }
 
-            function workFromHome() {
-                console.log('Work From Home action triggered');
-                // TODO: Implement Work From Home logic
-            }
+        function workFromHome() {
+            console.log('Work From Home action triggered');
+            // TODO: Implement Work From Home logic
+        }
 
         function updateEditor(dateKey) {
             const titleEl = document.getElementById("editorTitle");
@@ -310,9 +314,16 @@
 
         createCalendarHeader();
         createCalendarGrid();
-        channels.slice(0, 3).forEach((channel, index) => {
-            loadSubscribers(channel, index);
-        });
+        Promise.all(channels.slice(0, 3).map((channel, index) => loadSubscribers(channel, index)))
+            .then(() => {
+                // Duplicate the set so the scroll loops seamlessly
+                const set = document.getElementById("marqueeSet");
+                const clone = set.cloneNode(true);
+                clone.removeAttribute("id");
+                clone.setAttribute("aria-hidden", "true");
+                clone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+                document.getElementById("marqueeTrack").appendChild(clone);
+            });
 
         // Attach event listeners to icon buttons
         document.getElementById('addEventBtn').addEventListener('click', addEvent);
