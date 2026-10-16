@@ -286,7 +286,7 @@ body {
     border-radius: 6px;
     background: #d9ecd3;
     color: #2a4624;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.35;
     text-decoration: none;
     white-space: nowrap;
@@ -296,6 +296,17 @@ body {
 
 .calendar-event:hover {
     background: #c3e0ba;
+}
+
+.calendar-event-title,
+.calendar-event-time {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-event-time {
+    font-size: 0.8em;
+    opacity: 0.8;
 }
 
 .calendar-event-games {
@@ -394,46 +405,6 @@ body {
     letter-spacing: 0.05em;
 }
 
-.editor-panel {
-    margin-top: 4px;
-    border: 1px solid #d7e3d2;
-    border-radius: 10px;
-    background: #f8fcf5;
-    padding: 8px;
-    display: grid;
-    gap: 6px;
-    min-height: 0;
-}
-
-.editor-title {
-    margin: 0;
-    font-size: 18px;
-    color: #2a4624;
-    font-weight: 700;
-}
-
-.editor-note {
-    margin: 0;
-    font-size: 16px;
-    color: var(--text-muted);
-}
-
-.editor-input,
-.editor-textarea {
-    width: 100%;
-    border: 1px solid #b9cfb0;
-    border-radius: 8px;
-    font: inherit;
-    color: var(--text-main);
-    background: #ffffff;
-    padding: 6px 8px;
-}
-
-.editor-textarea {
-    min-height: 48px;
-    resize: vertical;
-}
-
 .bottom-banner {
     height: 50px;
     border-radius: 10px;
@@ -466,9 +437,5 @@ body {
 
     .week-context {
         font-size: 17px;
-    }
-
-    .editor-note {
-        display: none;
     }
 }

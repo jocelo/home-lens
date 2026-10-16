@@ -52,19 +52,12 @@
                     <span id="nextMonthBtn" style="font-size: 42px;"> ⏭️ </span>
                 </div>
                 <div class="week-context" id="weekContext">
-                    <button class="icon-button" id="addEventBtn" title="Add Event">➕</button>
                     <button class="icon-button" id="maiaPoopBtn" title="Maia Poop">💩</button>
                     <button class="icon-button" id="workFromHomeBtn" title="Work From Home">🏠</button>
                 </div>
             </div>
             <div class="calendar-header" id="calendarHeader"></div>
             <div class="calendar-grid" id="calendarGrid"></div>
-            <section class="editor-panel" id="editorPanel" aria-live="polite">
-                <p class="editor-title" id="editorTitle">Select a day</p>
-                <p class="editor-note">These fields are placeholders for your future daily details.</p>
-                <input class="editor-input" id="editorHeadline" type="text" placeholder="Title for selected day">
-                <textarea class="editor-textarea" id="editorDetails" placeholder="Details for selected day"></textarea>
-            </section>
         </section>
 
         <section class="bottom-banner" aria-label="Bottom image banner placeholder"></section>
@@ -84,7 +77,6 @@
         const MATE_CON_PAULA_CHANNEL = "UCMhSbWtm7M6IfR_pi3X56XQ";
         const BARBIE_WOONZA_CHANNEL = "UC1I4VCnjt4rhKUpQFhjG85w";
         const MAIAPAULA_CHANNEL = "UCzIuIkFMCQ1uVWYQXDW_qSw";
-        const dayNotes = {};
         // Event descriptions containing any of these hashtags get the icon and color
         const EVENT_CATEGORIES = [
             {
@@ -133,10 +125,6 @@
             monthLabel.textContent = `${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}`;
         }
 
-        function addEvent() {
-            window.location.href = '/add';
-        }
-
         function maiaPoop() {
             console.log('Maia Poop action triggered');
             // TODO: Implement Maia Poop logic
@@ -147,37 +135,11 @@
             // TODO: Implement Work From Home logic
         }
 
-        function updateEditor(dateKey) {
-            const titleEl = document.getElementById("editorTitle");
-            const headlineInput = document.getElementById("editorHeadline");
-            const detailsInput = document.getElementById("editorDetails");
-            const saved = dayNotes[dateKey] || { headline: "", details: "" };
-
-            titleEl.textContent = `Details for ${dateKey}`;
-            headlineInput.value = saved.headline;
-            detailsInput.value = saved.details;
-
-            headlineInput.oninput = () => {
-                dayNotes[dateKey] = {
-                    headline: headlineInput.value,
-                    details: detailsInput.value
-                };
-            };
-
-            detailsInput.oninput = () => {
-                dayNotes[dateKey] = {
-                    headline: headlineInput.value,
-                    details: detailsInput.value
-                };
-            };
-        }
-
-        function selectDayCell(cell, dateKey) {
+        function selectDayCell(cell) {
             document.querySelectorAll(".day-cell.selected").forEach((selected) => {
                 selected.classList.remove("selected");
             });
             cell.classList.add("selected");
-            updateEditor(dateKey);
         }
 
         function createCalendarHeader() {
@@ -405,13 +367,20 @@
                         item.className = "calendar-event";
                         item.title = event.location ? `${event.summary} @ ${event.location}` : event.summary;
                         const category = getEventCategory(event);
+                        const titleRow = document.createElement("div");
+                        titleRow.className = "calendar-event-title";
                         if (category) {
                             item.classList.add(category.className);
-                            item.textContent = `${category.icon} ${event.summary}`;
+                            titleRow.textContent = `${category.icon} ${event.summary}`;
                         } else {
-                            item.textContent = isAllDay
-                                ? event.summary
-                                : `${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} ${event.summary}`;
+                            titleRow.textContent = event.summary;
+                        }
+                        item.appendChild(titleRow);
+                        if (!isAllDay) {
+                            const timeRow = document.createElement("div");
+                            timeRow.className = "calendar-event-time";
+                            timeRow.textContent = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                            item.appendChild(timeRow);
                         }
                         item.addEventListener("click", (e) => {
                             e.stopPropagation();
@@ -521,11 +490,12 @@
         });
 
         // Attach event listeners to icon buttons
-        document.getElementById('addEventBtn').addEventListener('click', addEvent);
         document.getElementById('maiaPoopBtn').addEventListener('click', maiaPoop);
         document.getElementById('workFromHomeBtn').addEventListener('click', workFromHome);
 
         // Week navigation controls
+        document.getElementById('prevMonthBtn').addEventListener('click', () => shiftCalendarByWeek(-CALENDAR_ROWS));
+        document.getElementById('nextMonthBtn').addEventListener('click', () => shiftCalendarByWeek(CALENDAR_ROWS));
         document.getElementById('prevWeekBtn').addEventListener('click', () => shiftCalendarByWeek(-1));
         document.getElementById('nextWeekBtn').addEventListener('click', () => shiftCalendarByWeek(1));
         document.getElementById('todayBtn').addEventListener('click', goToTodayView);
