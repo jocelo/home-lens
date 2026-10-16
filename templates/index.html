@@ -16,7 +16,7 @@
                 <div>
                     <span class="banner-label" id="channelTitle0">Loading channel...</span>
                     <span class="banner-value" id="subscriberCount0">Loading...</span>
-                    <span class="banner-label" id="channelMeta0">Subscribers</span>
+                    <span class="banner-label" id="channelMeta0">Subs</span>
                 </div>
             </div>
 
@@ -25,7 +25,7 @@
                 <div>
                     <span class="banner-label" id="channelTitle1">Loading channel...</span>
                     <span class="banner-value" id="subscriberCount1">Loading...</span>
-                    <span class="banner-label" id="channelMeta1">Subscribers</span>
+                    <span class="banner-label" id="channelMeta1">Subs</span>
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
                 <div>
                     <span class="banner-label" id="channelTitle2">Loading channel...</span>
                     <span class="banner-value" id="subscriberCount2">Loading...</span>
-                    <span class="banner-label" id="channelMeta2">Subscribers</span>
+                    <span class="banner-label" id="channelMeta2">Subs</span>
                 </div>
             </div>
             </div>
@@ -70,6 +70,14 @@
         <section class="bottom-banner" aria-label="Bottom image banner placeholder"></section>
     </main>
 
+    <aside class="event-drawer" id="eventDrawer" aria-hidden="true">
+        <header class="event-drawer-header">
+            <h3 id="eventDrawerTitle">Events</h3>
+            <button class="icon-button" id="eventDrawerClose" title="Close">✖</button>
+        </header>
+        <div class="event-drawer-body" id="eventDrawerBody"></div>
+    </aside>
+
     <script>
         const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const CALENDAR_ROWS = 5;
@@ -77,6 +85,24 @@
         const BARBIE_WOONZA_CHANNEL = "UC1I4VCnjt4rhKUpQFhjG85w";
         const MAIAPAULA_CHANNEL = "UCzIuIkFMCQ1uVWYQXDW_qSw";
         const dayNotes = {};
+        // Event descriptions containing any of these hashtags get the icon and color
+        const EVENT_CATEGORIES = [
+            {
+                tags: ["#switch-releases", "#vg-releases", "#videogames", "#videogame", "#vg"],
+                icon: "🕹️",
+                className: "calendar-event-games",
+            },
+            {
+                tags: ["#birthdays", "#birthday", "#BD", "#bday", "#BDay", "#BDAY"],
+                icon: "🍰",
+                className: "calendar-event-birthday"
+            },
+            {
+                tags: ["#doctor", "#appointment", "#checkup", "#medical"],
+                icon: "🩺",
+                className: "calendar-event-doctor"
+            }
+        ];
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         let visibleStartDate = new Date(today);
@@ -252,6 +278,160 @@
             if (firstSelectableCell && firstSelectableDateKey) {
                 selectDayCell(firstSelectableCell, firstSelectableDateKey);
             }
+
+            loadCalendarEvents(startOfWeek, endDate);
+        }
+
+        let calendarRequestId = 0;
+
+        async function loadCalendarEvents(startDate, endDate) {
+            const requestId = ++calendarRequestId;
+            const rangeEnd = new Date(endDate);
+            rangeEnd.setDate(rangeEnd.getDate() + 1);
+            const params = new URLSearchParams({
+                start: startDate.toISOString(),
+                end: rangeEnd.toISOString()
+            });
+
+            try {
+                const response = await fetch(`/api/calendar-events?${params}`);
+                const payload = await response.json();
+                // Ignore stale responses after the user navigated away
+                if (requestId !== calendarRequestId || payload.error) {
+                    return;
+                }
+                renderCalendarEvents(payload.events);
+            } catch (error) {
+                console.error("Could not load calendar events", error);
+            }
+        }
+
+        let eventsByDate = {};
+        let openDrawerDateKey = null;
+
+        function formatEventTime(event) {
+            if (!event.start.includes("T")) {
+                return "All day";
+            }
+            const options = { hour: "numeric", minute: "2-digit" };
+            const start = new Date(event.start).toLocaleTimeString("en-US", options);
+            const end = new Date(event.end).toLocaleTimeString("en-US", options);
+            return `${start} - ${end}`;
+        }
+
+        function openEventDrawer(dateKey) {
+            const drawer = document.getElementById("eventDrawer");
+            const body = document.getElementById("eventDrawerBody");
+            document.getElementById("eventDrawerTitle").textContent = dateKey;
+            body.innerHTML = "";
+
+            (eventsByDate[dateKey] || []).forEach((event) => {
+                const card = document.createElement("article");
+                card.className = "event-card";
+
+                const title = document.createElement("h4");
+                title.textContent = event.summary;
+                card.appendChild(title);
+
+                const rows = [
+                    ["When", formatEventTime(event)],
+                    ["Where", event.location],
+                    ["Details", event.description]
+                ];
+                rows.forEach(([label, value]) => {
+                    if (!value) {
+                        return;
+                    }
+                    const row = document.createElement("p");
+                    const strong = document.createElement("strong");
+                    strong.textContent = `${label}: `;
+                    row.appendChild(strong);
+                    row.appendChild(document.createTextNode(value));
+                    card.appendChild(row);
+                });
+
+                if (event.htmlLink) {
+                    const link = document.createElement("a");
+                    link.href = event.htmlLink;
+                    link.target = "_blank";
+                    link.rel = "noopener";
+                    link.textContent = "Open in Google Calendar";
+                    card.appendChild(link);
+                }
+
+                body.appendChild(card);
+            });
+
+            drawer.classList.add("open");
+            drawer.setAttribute("aria-hidden", "false");
+            openDrawerDateKey = dateKey;
+        }
+
+        function closeEventDrawer() {
+            openDrawerDateKey = null;
+            const drawer = document.getElementById("eventDrawer");
+            drawer.classList.remove("open");
+            drawer.setAttribute("aria-hidden", "true");
+        }
+
+        function getEventCategory(event) {
+            const description = (event.description || "").toLowerCase();
+            return EVENT_CATEGORIES.find((category) =>
+                category.tags.some((tag) => description.includes(tag))
+            ) || null;
+        }
+
+        function renderCalendarEvents(events) {
+            eventsByDate = {};
+            document.querySelectorAll(".calendar-event").forEach((el) => el.remove());
+            events.forEach((event) => {
+                const isAllDay = !event.start.includes("T");
+                // All-day dates are plain YYYY-MM-DD; parse as local to avoid a UTC day shift
+                const start = isAllDay ? new Date(`${event.start}T00:00:00`) : new Date(event.start);
+                let end = isAllDay ? new Date(`${event.end}T00:00:00`) : new Date(event.end);
+                // Google's all-day end date is exclusive
+                if (isAllDay || end > start) {
+                    end = new Date(end.getTime() - 1);
+                }
+
+                const day = new Date(start);
+                day.setHours(0, 0, 0, 0);
+                while (day <= end) {
+                    const dateKey = formatDateKey(day);
+                    const cell = document.querySelector(`.day-cell[data-date="${dateKey}"]`);
+                    if (cell) {
+                        (eventsByDate[dateKey] = eventsByDate[dateKey] || []).push(event);
+                        const item = document.createElement("div");
+                        item.className = "calendar-event";
+                        item.title = event.location ? `${event.summary} @ ${event.location}` : event.summary;
+                        const category = getEventCategory(event);
+                        if (category) {
+                            item.classList.add(category.className);
+                            item.textContent = `${category.icon} ${event.summary}`;
+                        } else {
+                            item.textContent = isAllDay
+                                ? event.summary
+                                : `${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} ${event.summary}`;
+                        }
+                        item.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            openEventDrawer(cell.dataset.date);
+                        });
+                        cell.querySelector(".day-content-placeholder").appendChild(item);
+                    }
+                    day.setDate(day.getDate() + 1);
+                }
+            });
+
+            if (openDrawerDateKey) {
+                openEventDrawer(openDrawerDateKey);
+            }
+        }
+
+        function refreshCalendarEvents() {
+            const endDate = new Date(visibleStartDate);
+            endDate.setDate(visibleStartDate.getDate() + (CALENDAR_ROWS * 7) - 1);
+            loadCalendarEvents(visibleStartDate, endDate);
         }
 
         function shiftCalendarByWeek(weekDelta) {
@@ -293,7 +473,7 @@
                 }
 
                 channelTitleElement.textContent = payload.channel_name;
-                channelMetaElement.textContent = "Subscribers";
+                channelMetaElement.textContent = "Subs";
                 countElement.textContent = Number(payload.subscriber_count).toLocaleString();
 
                 if (payload.channel_icon_url) {
@@ -324,6 +504,21 @@
                 clone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
                 document.getElementById("marqueeTrack").appendChild(clone);
             });
+
+        document.getElementById('eventDrawerClose').addEventListener('click', closeEventDrawer);
+
+        // Poll Google Calendar so events added elsewhere appear without a reload
+        setInterval(refreshCalendarEvents, 300000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshCalendarEvents();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeEventDrawer();
+            }
+        });
 
         // Attach event listeners to icon buttons
         document.getElementById('addEventBtn').addEventListener('click', addEvent);

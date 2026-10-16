@@ -44,3 +44,7 @@ instance/
 # Environment variables
 .env
 .env.local
+
+# Google OAuth local files
+google_client_secret.json
+google_calendar_token.json
