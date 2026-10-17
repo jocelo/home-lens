@@ -188,6 +188,7 @@ def google_login():
         prompt='consent',
     )
     session['google_oauth_state'] = state
+    session['google_code_verifier'] = flow.code_verifier
     return redirect(authorization_url)
 
 
@@ -206,10 +207,12 @@ def google_oauth2callback():
         state=state,
         redirect_uri=GOOGLE_REDIRECT_URI,
     )
+    flow.code_verifier = session.get('google_code_verifier')
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     save_google_calendar_credentials(credentials)
     session.pop('google_oauth_state', None)
+    session.pop('google_code_verifier', None)
     return redirect(url_for('home'))
 
 
